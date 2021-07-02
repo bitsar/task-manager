@@ -1,3 +1,4 @@
+const validator = require('validator')
 const mongoose = require('mongoose')
 
 mongoose.connect('mongodb://127.0.0.1:27017/task-manager-api', {
@@ -9,26 +10,75 @@ mongoose.connect('mongodb://127.0.0.1:27017/task-manager-api', {
 // User model definition
 const User = mongoose.model('User', {
     name: {
-        type: String
+        type: String,
+        required: true,
+        trim: true
+    },
+    email: {
+        type: String,
+        required: true,
+        trim: true,
+        lowercase: true,
+        validate(value) {
+            if (!validator.isEmail(value)) {
+                throw new Error('Email is invalid')
+            }
+        }
+    },
+    password: {
+        type: String,
+        required: true, 
+        minLength: 7,
+        trim: true,
+        validate(value) {
+            if (value.toLowerCase().includes('password')) {
+                throw new Error('Password cannot contain "password"')
+            }
+        }
+
     },
     age: {
-        type: Number
+        type: Number,
+        default: 0,
+        validate(value) {
+            if (value < 0) {
+                throw new Error('Age must be a positive number')
+            }
+        }
     }
 })
+
+// Intsance of model
+// const me = new User({
+//     name: '  Mike    ',
+//     email: 'MYEMAIL@com.au    ',
+//     password: '1234hhggasd'
+// })
+
+// Save the model the db (returns a promise)
+// me.save().then(() => {
+//     console.log(me)
+// }).catch((error) => {
+//     console.log('Error', error)
+// })
 
 // Task model definition 
 const Task = mongoose.model('Task', {
     description: {
-        type: String
+        type: String,
+        required: true,
+        trim: true
     },
     completed: {
-        type: Boolean
+        type: Boolean,
+        required: false, 
+        default: false
     }
 })
 
 const task = new Task({
-    description: 'Walk the dog',
-    completed: true
+    description: 'Iron shirts',
+    completed: false
 })
 
 task.save().then(() => {
@@ -36,17 +86,3 @@ task.save().then(() => {
 }).catch((error) => {
     console.log('Error', error)
 })
-
-
-// // Intsance of model
-// const me = new User({
-//     name: 'Nick',
-//     age: 'blah'
-// })
-
-// // Save the model the db (returns a promise)
-// me.save().then(() => {
-//     console.log(me)
-// }).catch((error) => {
-//     console.log('Error', error)
-// })
